@@ -92,13 +92,14 @@ def train_network(dim, point=None, method="gradient"):
 
         for i in range(n):
             coefficients = generate_coefficients(random.randint(1, 5))
-
             def generate_alpha():
 
                 obj_func = create_polynomial(*coefficients)
                 obj_grad = create_gradient(*coefficients)
 
-                start_point = np.array(point)
+                global start_point
+                start_point = [random.randint(-5, 5) for _ in range(dim)]
+
 
                 if method == "gradient":
                     dir = np.array(obj_grad(start_point)) * -1
@@ -132,6 +133,8 @@ def train_network(dim, point=None, method="gradient"):
             while flatten_array(coefficients) in x_train or flatten_array(coefficients) in x_test:
                 coefficients = generate_coefficients(random.randint(1, 5))
                 alpha = generate_alpha()
+
+            coefficients.append(start_point)
 
             if (i >= n_train):
                 x_test.append(flatten_array(coefficients))
@@ -212,10 +215,12 @@ def train_network(dim, point=None, method="gradient"):
         right_values = 0
 
         for i in range(len(y)):
-            func = create_polynomial(x_train[i][0], *array_to_coefficients(x_train[i][1:]))
-            grad = create_gradient(x_train[i][0], *array_to_coefficients(x_train[i][1:]))
+            func = create_polynomial(x_train[i][0], *array_to_coefficients(x_train[i][1:])[:-1])
+            grad = create_gradient(x_train[i][0], *array_to_coefficients(x_train[i][1:])[:-1])
 
             # x_train[i][0], x_train[i][1:6], x_train[i][6:]
+            point = x_train[i][-dim:]
+            print(point)
 
             if method == "gradient":
                 dir = np.array(grad(point)) * -1
@@ -245,4 +250,4 @@ def train_network(dim, point=None, method="gradient"):
 
     check_wolfe()
 
-train_network(dim=2, method="quasi_newton")
+train_network(dim=3)
