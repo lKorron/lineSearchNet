@@ -1,9 +1,7 @@
 import numpy as np
 import numpy.linalg.linalg
 from scipy.optimize import line_search, minimize
-from numpy.linalg import det
 
-dim = 3
 
 def create_polynomial(c, *args):
     def vector(x):
@@ -74,74 +72,3 @@ def quasi_newton_method(func, grad, start_point):
 
 
 
-matrix = gessian([1, 1, 5], [0, 2, 2, 0, 0], [1, 2, 0, 0, 0], [2, 2, 1, 0, 0])
-
-matrix = np.array(matrix) * -1
-
-inversed = np.linalg.inv(matrix)
-
-func = create_polynomial(1, [0, 2, 2, 0, 0], [1, 2, 0, 0, 0], [2, 2, 0, 0, 0])
-grad = create_gradient(1, [0, 2, 2, 0, 0], [1, 2, 0, 0, 0], [2, 2, 0, 0, 0])
-start_point = [0, 0, 0]
-
-search_grad = np.array(grad(start_point)) * -1
-
-dir = np.matmul(inversed, grad(start_point))
-print(dir)
-
-
-inv = appriximated_inv_gessian(func, start_point)
-
-dir2 = quasi_newton_method(func, grad, start_point)
-
-print(dir2)
-
-print(type(dir2[0]))
-
-res = line_search(func, grad, start_point, dir)
-
-
-
-
-x_1 = start_point + res[0] * search_grad
-
-
-
-def is_wolfe1(alpha, func, grad, start_point, dir):
-    c1 = 1e-3
-
-    x_new = start_point + alpha * dir
-
-    if func(x_new) <= func(start_point) + c1 * alpha * np.dot(grad(start_point), dir):
-        return True
-    else:
-        return False
-
-def is_wolfe2(alpha, func, grad, start_point, dir):
-    c2 = 0.8
-
-    x_new = start_point + alpha * dir
-
-
-    if np.abs(np.dot(grad(x_new), dir)) <= np.abs(c2 * np.dot(grad(start_point), dir)):
-        return True
-    else:
-        return False
-
-
-
-
-
-
-print(is_wolfe1(res[0], func, grad, start_point, dir))
-print(is_wolfe2(res[0], func, grad, start_point, dir))
-
-f = create_polynomial(0, [2, 2, 0, 0, 0], [2, 2, 0, 0, 0])
-g = create_gradient(0, [2, 2, 0, 0, 0], [2, 2, 0, 0, 0])
-point = [0, 0]
-d = np.array(g(point)) * -1
-
-# print(d)
-#
-# print(is_wolfe1(3, f, g, point, d))
-# print(is_wolfe2(0.08, f, g, point, d))

@@ -5,8 +5,10 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 from keras import backend as K
-from gesse import is_wolfe1, is_wolfe2, gessian, newton_method, quasi_newton_method
+from gesse import gessian, newton_method, quasi_newton_method
 from numpy.linalg import det
+from data_transformation import flatten_array, array_to_coefficients
+from wolfe_conditions import is_wolfe
 
 
 
@@ -34,13 +36,6 @@ def train_network(dim, method="gradient", A=0, B=0):
             result.append(generate_a(n))
 
         return result
-
-    def create_point():
-        array = []
-        for i in range(dim):
-            array.append(random.randint(-10, 10) / 10)
-
-        return array
 
     # создание полинома через замыкание
     def create_polynomial(c, *args):
@@ -143,22 +138,6 @@ def train_network(dim, method="gradient", A=0, B=0):
 
         return (x_train, y_train), (x_test, y_test)
 
-    def flatten_array(array):
-        result = []
-        for el in array:
-            if type(el) is list:
-                for i in el:
-                    result.append(i)
-
-            else:
-                result.append(el)
-
-        return result
-
-    def array_to_coefficients(array):
-        N = 5
-        subList = [array[n:n+N] for n in range(0, len(array), N)]
-        return subList
 
 
     # загрузка данных
@@ -235,7 +214,7 @@ def train_network(dim, method="gradient", A=0, B=0):
             elif method == "quasi_newton":
                 dir = quasi_newton_method(func, grad, point)
 
-            if is_wolfe1(y[i], func, grad, point, dir) and is_wolfe2(y[i], func, grad, point, dir):
+            if is_wolfe(y[i], func, grad, point, dir):
                 print(True)
                 right_values += 1
             else:
