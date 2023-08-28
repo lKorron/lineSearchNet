@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.linalg
-from scipy.optimize import line_search, minimize
+from scipy.optimize import minimize
 
 
 def create_polynomial(c, *a):

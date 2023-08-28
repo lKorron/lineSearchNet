@@ -4,12 +4,12 @@ from tensorflow import keras
 from keras.layers import Dense, BatchNormalization
 
 from math_structures import create_polynomial, create_gradient, hessian, newton_method, quasi_newton_method
-from data_transformation import  array_to_coefficients
+from data_transformation import array_to_coefficients
 from data_generation import load_data
 from wolfe_conditions import is_wolfe
 
-def train_network(dim, method="gradient", A=0, B=0):
 
+def train_network(dim, method="newton", A=0, B=0, internal_layers=None):
     # загрузка данных
     (x_train, y_train), (x_test, y_test) = load_data(dim, A, B, method)
 
@@ -23,13 +23,17 @@ def train_network(dim, method="gradient", A=0, B=0):
     normalizer = keras.layers.Normalization(axis=-1)
     normalizer.adapt(x_train)
 
+    if internal_layers is None:
+        internal_layers = [Dense(64, activation="relu"),
+                           Dense(32, activation="relu")]
+
     # структура сети
     model = keras.Sequential([
         normalizer,
         BatchNormalization(),
-        Dense(64, activation="relu"),
-        Dense(32, activation="relu"),
-        Dense(1, activation="linear")])
+        *internal_layers,
+        Dense(1, activation="linear")
+    ])
 
     # выбор оптимизатора, целевой функции
     optimizer = keras.optimizers.Adam()
@@ -55,8 +59,6 @@ def train_network(dim, method="gradient", A=0, B=0):
     plt.show()
 
     y = model.predict(x_test)
-    print(y)
-
 
     def check_wolfe():
         right_values = 0
@@ -66,6 +68,7 @@ def train_network(dim, method="gradient", A=0, B=0):
             grad = create_gradient(x_test[i][0], *array_to_coefficients(x_test[i][1:])[:-1])
 
             point = x_test[i][-dim:]
+            print(point)
 
             if method == "gradient":
                 dir = np.array(grad(point)) * -1
@@ -82,17 +85,15 @@ def train_network(dim, method="gradient", A=0, B=0):
             else:
                 print(False)
 
-        print("Процент соответсвия альфа усилинным условиям вольфе:")
+        print("Процент соответсвия альфа усилинным условиям Вольфе:")
         print(right_values / len(x_test) * 100)
-
-
-
 
     check_wolfe()
 
-    ans = input("wanna save the model? ")
+    ans = input("Сохранить модель? y/n ")
 
     if ans == "y":
-        model.save("model1")
+        name = input("Введите имя модели: ")
+        model.save(name)
 
-train_network(dim=3, method="newton", A=-10, B=10)
+
