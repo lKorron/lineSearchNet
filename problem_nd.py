@@ -5,7 +5,7 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 from keras import backend as K
-from gesse import gessian, newton_method, quasi_newton_method
+from math_structures import create_polynomial, create_gradient, hessian, newton_method, quasi_newton_method
 from numpy.linalg import det
 from data_transformation import flatten_array, array_to_coefficients
 from wolfe_conditions import is_wolfe
@@ -38,30 +38,9 @@ def train_network(dim, method="gradient", A=0, B=0):
         return result
 
     # создание полинома через замыкание
-    def create_polynomial(c, *args):
-        def vector(x):
-            return np.array([x, x ** 2, x ** 3, x ** 4, x ** 5])
 
-        def polynomial(x):
-            out = c
-            for i in range(len(args)):
-                out += np.matmul(np.array(args[i]), vector(x[i]))
-            return out
-
-        return polynomial
 
     # создание градиента через замыкание
-    def create_gradient(c, *args):
-        def d_vector(x):
-            return np.array([1, 2 * x, 3 * x ** 2, 4 * x ** 3, 5 * x ** 4])
-
-        def gradient(x):
-            out = []
-            for i in range(len(args)):
-                out.append(np.matmul(np.array(args[i]), d_vector(x[i])))
-            return out
-
-        return gradient
 
     # обертка функции линейного поиска для фильтрации выборки
     def linear_search(*args):
@@ -97,7 +76,7 @@ def train_network(dim, method="gradient", A=0, B=0):
                 if method == "gradient":
                     dir = np.array(obj_grad(start_point)) * -1
                 elif method == "newton":
-                    matrix = gessian(start_point, *coefficients[1:])
+                    matrix = hessian(start_point, *coefficients[1:])
 
                     if det(matrix) == 0:
                         return -1
@@ -105,7 +84,7 @@ def train_network(dim, method="gradient", A=0, B=0):
                     dir = newton_method(obj_grad, matrix, start_point)
 
                 elif method == "quasi_newton":
-                    matrix = gessian(start_point, *coefficients[1:])
+                    matrix = hessian(start_point, *coefficients[1:])
 
                     if det(matrix) == 0:
                         return -1
@@ -202,7 +181,7 @@ def train_network(dim, method="gradient", A=0, B=0):
             if method == "gradient":
                 dir = np.array(grad(point)) * -1
             elif method == "newton":
-                matrix = gessian(point, *array_to_coefficients(x_train[i][1:])[:-1])
+                matrix = hessian(point, *array_to_coefficients(x_train[i][1:])[:-1])
                 #x_train[i][1:6], x_train[i][6:]
 
                 if det(matrix) == 0:
