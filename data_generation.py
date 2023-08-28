@@ -5,7 +5,7 @@ from scipy.optimize import line_search
 from math_structures import create_polynomial, create_gradient, hessian, newton_method, quasi_newton_method
 from data_transformation import flatten_array
 
-
+# генерация слуайных коэффициентов для многочлена n-й степени, n <= 5
 def generate_coefficients(n, dim):
     c = random.randint(-100, 100)
     result = [c]
@@ -27,7 +27,7 @@ def generate_coefficients(n, dim):
 
     return result
 
-
+# обертка для фильтрации ошибок сходимости
 def linear_search(*args):
     alpha = line_search(*args)[0]
 
@@ -76,6 +76,16 @@ def load_data(dim, A, B, method):
                     return -1
 
                 dir = quasi_newton_method(obj_func, obj_grad, start_point)
+
+            elif method == "mixed":
+                if i < n_train / 2 or (i > n_train and i < n / 2):
+                    dir = np.array(obj_grad(start_point)) * -1
+                elif i >= n_train / 2 or (i > n_train and i >= n / 2):
+                    matrix = hessian(start_point, *coefficients[1:])
+                    if det(matrix) == 0:
+                        return -1
+                    dir = newton_method(obj_grad, matrix, start_point)
+
 
             a = linear_search(obj_func, obj_grad, start_point, dir)
             return a

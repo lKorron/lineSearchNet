@@ -2,7 +2,7 @@ import numpy as np
 import numpy.linalg
 from scipy.optimize import minimize
 
-
+# создание полинома через замыкание
 def create_polynomial(c, *a):
     def vector(x):
         return np.array([x, x ** 2, x ** 3, x ** 4, x ** 5])
@@ -15,6 +15,7 @@ def create_polynomial(c, *a):
 
     return polynomial
 
+# создание градиента через замыкание
 def create_gradient(c, *a):
     def d_vector(x):
         return np.array([1, 2 * x, 3 * x ** 2, 4 * x ** 3, 5 * x ** 4])
@@ -37,7 +38,7 @@ def create_2derivative(a):
 
     return derivative
 
-
+# матрица Гессе в точке x, в зависимости от коэффициентов полинома
 def hessian(x, *a):
     dim = len(a)
     df = [create_2derivative(a[i]) for i in range(dim)]

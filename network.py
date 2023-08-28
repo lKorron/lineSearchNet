@@ -79,6 +79,19 @@ def train_network(dim, method="newton", A=0, B=0, internal_layers=None):
             elif method == "quasi_newton":
                 dir = quasi_newton_method(func, grad, point)
 
+
+            elif method == "mixed":
+
+                if i < len(x_test) / 2:
+                    dir = np.array(grad(point)) * -1
+
+                elif i > len(x_test) / 2:
+
+                    matrix = hessian(point, *array_to_coefficients(x_test[i][1:])[:-1])
+                    dir = newton_method(grad, matrix, point)
+
+
+
             if is_wolfe(y[i], func, grad, point, dir):
                 print(True)
                 right_values += 1
