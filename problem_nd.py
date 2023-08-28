@@ -10,11 +10,9 @@ from numpy.linalg import det
 
 
 
-def train_network(dim, point=None, method="gradient"):
+def train_network(dim, method="gradient", A=0, B=0):
     # генерация коэффициентов для полинома до 5й степени
     # с числом измерений, равным dim
-    if point is None:
-        point = np.zeros(dim)
 
     def generate_coefficients(n):
         c = random.randint(-100, 100)
@@ -98,7 +96,7 @@ def train_network(dim, point=None, method="gradient"):
                 obj_grad = create_gradient(*coefficients)
 
                 global start_point
-                start_point = [random.randint(-5, 5) for _ in range(dim)]
+                start_point = [random.randint(A, B) / 10 + random.randint(A, B) for _ in range(dim)]
 
 
                 if method == "gradient":
@@ -207,7 +205,7 @@ def train_network(dim, point=None, method="gradient"):
     plt.plot(history.history["val_loss"])
     plt.show()
 
-    y = model.predict(x_train[0:50])
+    y = model.predict(x_train[0:10000])
     print(y)
 
 
@@ -225,7 +223,7 @@ def train_network(dim, point=None, method="gradient"):
             if method == "gradient":
                 dir = np.array(grad(point)) * -1
             elif method == "newton":
-                matrix = gessian(point, *array_to_coefficients(x_train[i][1:]))
+                matrix = gessian(point, *array_to_coefficients(x_train[i][1:])[:-1])
                 #x_train[i][1:6], x_train[i][6:]
 
                 if det(matrix) == 0:
@@ -243,11 +241,16 @@ def train_network(dim, point=None, method="gradient"):
             else:
                 print(False)
 
-        print(right_values / 50)
+        print(right_values / 10000)
 
 
 
 
     check_wolfe()
 
-train_network(dim=3)
+    ans = input("wanna save the model? ")
+
+    if ans == "y":
+        model.save("model1")
+
+train_network(dim=3, method="newton", A=-10, B=10)
