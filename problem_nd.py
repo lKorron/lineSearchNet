@@ -1,17 +1,12 @@
-from scipy.optimize import line_search, minimize
-from tensorflow import keras
-from keras.layers import Dense, Dropout, BatchNormalization
 import numpy as np
-import random
 import matplotlib.pyplot as plt
-from keras import backend as K
+from tensorflow import keras
+from keras.layers import Dense, BatchNormalization
+
 from math_structures import create_polynomial, create_gradient, hessian, newton_method, quasi_newton_method
-from numpy.linalg import det
-from data_transformation import flatten_array, array_to_coefficients
+from data_transformation import  array_to_coefficients
 from data_generation import load_data
 from wolfe_conditions import is_wolfe
-
-
 
 def train_network(dim, method="gradient", A=0, B=0):
 
@@ -40,12 +35,12 @@ def train_network(dim, method="gradient", A=0, B=0):
     optimizer = keras.optimizers.Adam()
     loss = keras.losses.MeanAbsoluteError()
 
-    def soft_acc(y_true, y_pred):
-        return K.mean(K.equal(K.round(y_true), K.round(y_pred)))
+    # def soft_acc(y_true, y_pred):
+    #     return K.mean(K.equal(K.round(y_true), K.round(y_pred)))
 
     # компиляция, выбор метрики
     model.compile(optimizer=optimizer, loss=loss,
-                  metrics=["mean_absolute_percentage_error", soft_acc])
+                  metrics=["mean_absolute_percentage_error"])
 
     # обучение
     history = model.fit(x_train, y_train, batch_size=128, epochs=160, validation_split=0.2)
@@ -59,7 +54,7 @@ def train_network(dim, method="gradient", A=0, B=0):
     plt.plot(history.history["val_loss"])
     plt.show()
 
-    y = model.predict(x_train[0:10000])
+    y = model.predict(x_test)
     print(y)
 
 
@@ -67,23 +62,15 @@ def train_network(dim, method="gradient", A=0, B=0):
         right_values = 0
 
         for i in range(len(y)):
-            func = create_polynomial(x_train[i][0], *array_to_coefficients(x_train[i][1:])[:-1])
-            grad = create_gradient(x_train[i][0], *array_to_coefficients(x_train[i][1:])[:-1])
+            func = create_polynomial(x_test[i][0], *array_to_coefficients(x_test[i][1:])[:-1])
+            grad = create_gradient(x_test[i][0], *array_to_coefficients(x_test[i][1:])[:-1])
 
-            # x_train[i][0], x_train[i][1:6], x_train[i][6:]
-            point = x_train[i][-dim:]
-            print(point)
+            point = x_test[i][-dim:]
 
             if method == "gradient":
                 dir = np.array(grad(point)) * -1
             elif method == "newton":
-                matrix = hessian(point, *array_to_coefficients(x_train[i][1:])[:-1])
-                #x_train[i][1:6], x_train[i][6:]
-
-                if det(matrix) == 0:
-                    print("zero det")
-                    return -1
-
+                matrix = hessian(point, *array_to_coefficients(x_test[i][1:])[:-1])
                 dir = newton_method(grad, matrix, point)
 
             elif method == "quasi_newton":
@@ -95,7 +82,8 @@ def train_network(dim, method="gradient", A=0, B=0):
             else:
                 print(False)
 
-        print(right_values / 10000)
+        print("Процент соответсвия альфа усилинным условиям вольфе:")
+        print(right_values / len(x_test) * 100)
 
 
 
