@@ -38,7 +38,8 @@ def create_2derivative(a):
 
     return derivative
 
-# матрица Гессе в точке x, в зависимости от коэффициентов полинома
+# матрица Гессе в точке x, в зависимости от коэффициентов полинома,
+# для полиномов всегда является диагональной
 def hessian(x, *a):
     dim = len(a)
     df = [create_2derivative(a[i]) for i in range(dim)]
