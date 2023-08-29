@@ -9,7 +9,7 @@ from data_generation import load_data
 from wolfe_conditions import is_wolfe
 
 
-def train_network(dim, method="newton", A=0, B=0, internal_layers=None):
+def train_network(dim, method="newton", A=0, B=0, internal_layers=None, train_epochs=160):
     # загрузка данных
     (x_train, y_train), (x_test, y_test) = load_data(dim, A, B, method)
 
@@ -47,7 +47,7 @@ def train_network(dim, method="newton", A=0, B=0, internal_layers=None):
                   metrics=["mean_absolute_percentage_error"])
 
     # обучение
-    history = model.fit(x_train, y_train, batch_size=128, epochs=160, validation_split=0.2)
+    history = model.fit(x_train, y_train, batch_size=128, epochs=train_epochs, validation_split=0.2)
 
     # тестирование
     results = model.evaluate(x_test, y_test, batch_size=128)
@@ -85,7 +85,7 @@ def train_network(dim, method="newton", A=0, B=0, internal_layers=None):
                 if i < len(x_test) / 2:
                     dir = np.array(grad(point)) * -1
 
-                elif i > len(x_test) / 2:
+                elif i >= len(x_test) / 2:
 
                     matrix = hessian(point, *array_to_coefficients(x_test[i][1:])[:-1])
                     dir = newton_method(grad, matrix, point)
@@ -98,7 +98,7 @@ def train_network(dim, method="newton", A=0, B=0, internal_layers=None):
             else:
                 print(False)
 
-        print("Процент соответсвия альфа усилинным условиям Вольфе:")
+        print("Процент соответствия альфа усиленным условиям Вольфе:")
         print(right_values / len(x_test) * 100)
 
     check_wolfe()

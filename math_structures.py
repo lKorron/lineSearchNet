@@ -52,9 +52,10 @@ def hessian(x, *a):
     return matrix
 
 def appriximated_inv_hessian(func, x0):
-    result = minimize(func, x0, method="BFGS")
+    result = minimize(func, x0, method="BFGS", options={"maxiter": 1})
+    list = np.array(result.hess_inv.tolist())
 
-    return result.hess_inv
+    return list
 
 def newton_method(grad, gesse_matrix, start_point):
     matrix = np.array(gesse_matrix) * -1
